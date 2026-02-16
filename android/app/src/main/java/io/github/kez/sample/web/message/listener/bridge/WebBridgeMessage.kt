@@ -2,6 +2,9 @@ package io.github.kez.sample.web.message.listener.bridge
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 
 /**
  * 웹-네이티브 통신을 위한 타입 안전한 메시지 프로토콜
@@ -64,6 +67,12 @@ object WebBridgeSerializer {
     fun parseRequest(raw: String): WebBridgeMessage.Request? {
         return runCatching {
             json.decodeFromString<WebBridgeMessage.Request>(raw)
+        }.getOrNull()
+    }
+
+    fun extractRequestId(raw: String): String? {
+        return runCatching {
+            json.parseToJsonElement(raw).jsonObject["id"]?.jsonPrimitive?.contentOrNull
         }.getOrNull()
     }
 
