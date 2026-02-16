@@ -25,3 +25,13 @@ web/.vite/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# TypeScript build cache / generated config artifacts
+web/*.tsbuildinfo
+web/vite.config.js
+web/vite.config.d.ts
+
+# TypeScript build cache / generated config artifacts
+web/*.tsbuildinfo
+web/vite.config.js
+web/vite.config.d.ts
