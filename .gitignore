@@ -1,0 +1,27 @@
+# macOS
+.DS_Store
+
+# IntelliJ / Android Studio
+.idea/
+*.iml
+
+# Android / Gradle
+**/build/
+.gradle/
+android/.gradle/
+android/local.properties
+android/.kotlin/
+
+# Kotlin / Java
+*.class
+
+# Node / Web
+web/node_modules/
+web/dist/
+web/.vite/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

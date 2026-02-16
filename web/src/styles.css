@@ -1,0 +1,218 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap');
+
+:root {
+  --bg-top: #fff9ed;
+  --bg-bottom: #d8ecff;
+  --ink: #1f2430;
+  --soft-ink: #566075;
+  --card: rgba(255, 255, 255, 0.85);
+  --line: #d2dae7;
+  --brand: #1a7f72;
+  --brand-strong: #0f6157;
+  --accent: #c2452f;
+  --success: #0a8a4b;
+  --danger: #b42318;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  color: var(--ink);
+  font-family: 'Space Grotesk', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+  background: linear-gradient(160deg, var(--bg-top) 0%, var(--bg-bottom) 100%);
+}
+
+.page {
+  min-height: 100vh;
+  padding: 24px 14px 48px;
+  position: relative;
+}
+
+.background-glow {
+  position: fixed;
+  top: -120px;
+  right: -90px;
+  width: 360px;
+  height: 360px;
+  background: radial-gradient(circle, rgba(194, 69, 47, 0.35) 0%, rgba(194, 69, 47, 0) 70%);
+  pointer-events: none;
+}
+
+.container {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: clamp(1.7rem, 3vw, 2.2rem);
+}
+
+.header p {
+  margin: 8px 0 20px;
+  color: var(--soft-ink);
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 12px;
+  backdrop-filter: blur(4px);
+}
+
+.card h2 {
+  margin: 0 0 10px;
+  font-size: 1rem;
+}
+
+.card-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.button-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+button {
+  border: 0;
+  background: var(--brand);
+  color: #fff;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 10px;
+  padding: 10px 14px;
+  transition: transform 0.16s ease, background-color 0.16s ease;
+}
+
+button:hover {
+  background: var(--brand-strong);
+  transform: translateY(-1px);
+}
+
+button.secondary {
+  background: #37465e;
+}
+
+.badge {
+  display: inline-flex;
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.badge.connected {
+  color: #0d733f;
+  background: #e3f9ed;
+}
+
+.badge.missing {
+  color: #a61f14;
+  background: #feecec;
+}
+
+.result {
+  margin: 10px 0 0;
+  min-height: 62px;
+  max-height: 220px;
+  overflow: auto;
+  border-radius: 10px;
+  padding: 10px;
+  background: #fbfdff;
+  border-left: 4px solid #93a4bb;
+  font-size: 0.82rem;
+}
+
+.result.loading {
+  border-left-color: #a57100;
+  color: #805c00;
+}
+
+.result.success {
+  border-left-color: var(--success);
+}
+
+.result.error {
+  border-left-color: var(--danger);
+  color: var(--danger);
+}
+
+.form {
+  display: grid;
+  gap: 10px;
+}
+
+label {
+  display: grid;
+  gap: 6px;
+  font-size: 0.82rem;
+  color: var(--soft-ink);
+}
+
+input {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px;
+  font-size: 0.94rem;
+  font-family: inherit;
+}
+
+.log-list {
+  margin-top: 10px;
+  max-height: 220px;
+  overflow: auto;
+}
+
+.log {
+  margin: 0 0 6px;
+  padding: 8px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+}
+
+.log.info {
+  background: #e8f3ff;
+  color: #0e4f95;
+}
+
+.log.success {
+  background: #e8faef;
+  color: #0a6b3a;
+}
+
+.log.error {
+  background: #fdeeed;
+  color: #a61f14;
+}
+
+.empty {
+  margin: 0;
+  color: var(--soft-ink);
+  font-size: 0.84rem;
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding: 18px 10px 38px;
+  }
+
+  .card {
+    padding: 12px;
+    border-radius: 12px;
+  }
+
+  button {
+    width: 100%;
+  }
+}

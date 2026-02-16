@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebMessageListener Demo</title>
+    <style>
+        :root {
+            --primary: #6200EE;
+            --primary-dark: #3700B3;
+            --secondary: #03DAC6;
+            --error: #CF6679;
+            --surface: #FFFFFF;
+            --background: #F5F5F5;
+            --text-primary: #212121;
+            --text-secondary: #757575;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--background);
+            color: var(--text-primary);
+            line-height: 1.5;
+            padding: 16px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--primary);
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+        }
+
+        .card {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-title .icon {
+            font-size: 20px;
+        }
+
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 20px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        button:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: #BDBDBD;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        button.secondary {
+            background: var(--secondary);
+            color: #000;
+        }
+
+        .result-container {
+            background: #F8F9FA;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 12px;
+            font-family: 'SF Mono', 'Consolas', monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            word-break: break-all;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .result-container.success {
+            border-left: 4px solid var(--secondary);
+        }
+
+        .result-container.error {
+            border-left: 4px solid var(--error);
+            color: var(--error);
+        }
+
+        .result-container.pending {
+            border-left: 4px solid #FFC107;
+            color: var(--text-secondary);
+        }
+
+        .input-group {
+            margin-bottom: 12px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #E0E0E0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-badge.supported {
+            background: #E8F5E9;
+            color: #2E7D32;
+        }
+
+        .status-badge.unsupported {
+            background: #FFEBEE;
+            color: #C62828;
+        }
+
+        .section-divider {
+            height: 1px;
+            background: #E0E0E0;
+            margin: 16px 0;
+        }
+
+        #log-container {
+            margin-top: 12px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .log-entry {
+            font-size: 12px;
+            padding: 4px 8px;
+            margin: 2px 0;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+
+        .log-entry.info {
+            background: #E3F2FD;
+            color: #1565C0;
+        }
+
+        .log-entry.success {
+            background: #E8F5E9;
+            color: #2E7D32;
+        }
+
+        .log-entry.error {
+            background: #FFEBEE;
+            color: #C62828;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>WebMessageListener Demo</h1>
+        <p class="subtitle">JavaScript ↔ Native 양방향 통신 테스트</p>
+
+        <!-- Bridge 상태 -->
+        <div class="card">
+            <div class="card-title">
+                <span class="icon">🔌</span>
+                Bridge 상태
+            </div>
+            <div id="bridge-status">
+                <span class="status-badge" id="status-badge">확인 중...</span>
+            </div>
+        </div>
+
+        <!-- 기본 테스트 -->
+        <div class="card">
+            <div class="card-title">
+                <span class="icon">🧪</span>
+                기본 테스트
+            </div>
+            <div class="button-group">
+                <button onclick="testPing()">
+                    🏓 Ping
+                </button>
+                <button onclick="testEcho()">
+                    📢 Echo
+                </button>
+            </div>
+            <div id="basic-result" class="result-container pending">
+                버튼을 눌러 테스트하세요
+            </div>
+        </div>
+
+        <!-- 정보 조회 -->
+        <div class="card">
+            <div class="card-title">
+                <span class="icon">📱</span>
+                정보 조회
+            </div>
+            <div class="button-group">
+                <button onclick="getUserInfo()">
+                    👤 사용자 정보
+                </button>
+                <button onclick="getDeviceInfo()">
+                    📲 디바이스 정보
+                </button>
+            </div>
+            <div id="info-result" class="result-container pending">
+                버튼을 눌러 정보를 조회하세요
+            </div>
+        </div>
+
+        <!-- 데이터 저장/조회 -->
+        <div class="card">
+            <div class="card-title">
+                <span class="icon">💾</span>
+                데이터 저장/조회
+            </div>
+            <div class="input-group">
+                <label for="data-key">Key</label>
+                <input type="text" id="data-key" placeholder="저장할 키 입력" value="myKey">
+            </div>
+            <div class="input-group">
+                <label for="data-value">Value</label>
+                <input type="text" id="data-value" placeholder="저장할 값 입력" value="Hello from Web!">
+            </div>
+            <div class="button-group">
+                <button onclick="saveData()">
+                    💾 저장
+                </button>
+                <button onclick="getData()" class="secondary">
+                    📖 조회
+                </button>
+            </div>
+            <div id="data-result" class="result-container pending">
+                데이터를 저장하거나 조회하세요
+            </div>
+        </div>
+
+        <!-- 로그 -->
+        <div class="card">
+            <div class="card-title">
+                <span class="icon">📋</span>
+                통신 로그
+            </div>
+            <button onclick="clearLog()">
+                🗑️ 로그 지우기
+            </button>
+            <div id="log-container"></div>
+        </div>
+    </div>
+
+    <script>
+        // ========== NativeBridge 래퍼 ==========
+
+        const pendingRequests = new Map();
+
+        function generateId() {
+            return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        }
+
+        function sendToNative(action, payload = {}) {
+            return new Promise((resolve, reject) => {
+                const id = generateId();
+                const request = { id, action, payload };
+
+                log('info', `→ [${action}] 요청 전송`);
+
+                // 타임아웃 (10초)
+                const timeout = setTimeout(() => {
+                    pendingRequests.delete(id);
+                    log('error', `⏱️ [${action}] 타임아웃`);
+                    reject(new Error('Request timeout'));
+                }, 10000);
+
+                pendingRequests.set(id, { resolve, reject, timeout, action });
+
+                // Native로 전송
+                if (typeof NativeBridge !== 'undefined') {
+                    NativeBridge.postMessage(JSON.stringify(request));
+                } else {
+                    clearTimeout(timeout);
+                    pendingRequests.delete(id);
+                    log('error', '❌ NativeBridge not available');
+                    reject(new Error('NativeBridge not available'));
+                }
+            });
+        }
+
+        // Native 응답 수신 핸들러
+        if (typeof NativeBridge !== 'undefined') {
+            NativeBridge.onmessage = function(event) {
+                try {
+                    const response = JSON.parse(event.data);
+                    const pending = pendingRequests.get(response.id);
+
+                    if (pending) {
+                        clearTimeout(pending.timeout);
+                        pendingRequests.delete(response.id);
+
+                        if (response.success) {
+                            log('success', `← [${pending.action}] 성공`);
+                            pending.resolve(response.data ? JSON.parse(response.data) : null);
+                        } else {
+                            log('error', `← [${pending.action}] 실패: ${response.error}`);
+                            pending.reject(new Error(response.error));
+                        }
+                    }
+                } catch (error) {
+                    log('error', `응답 파싱 오류: ${error.message}`);
+                }
+            };
+        }
+
+        // ========== 테스트 함수들 ==========
+
+        async function testPing() {
+            const resultEl = document.getElementById('basic-result');
+            resultEl.className = 'result-container pending';
+            resultEl.textContent = '요청 중...';
+
+            try {
+                const result = await sendToNative('ping');
+                resultEl.className = 'result-container success';
+                resultEl.textContent = JSON.stringify(result, null, 2);
+            } catch (error) {
+                resultEl.className = 'result-container error';
+                resultEl.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        async function testEcho() {
+            const resultEl = document.getElementById('basic-result');
+            resultEl.className = 'result-container pending';
+            resultEl.textContent = '요청 중...';
+
+            try {
+                const result = await sendToNative('echo', { message: 'Hello from JavaScript!' });
+                resultEl.className = 'result-container success';
+                resultEl.textContent = JSON.stringify(result, null, 2);
+            } catch (error) {
+                resultEl.className = 'result-container error';
+                resultEl.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        async function getUserInfo() {
+            const resultEl = document.getElementById('info-result');
+            resultEl.className = 'result-container pending';
+            resultEl.textContent = '요청 중...';
+
+            try {
+                const result = await sendToNative('getUserInfo');
+                resultEl.className = 'result-container success';
+                resultEl.textContent = JSON.stringify(result, null, 2);
+            } catch (error) {
+                resultEl.className = 'result-container error';
+                resultEl.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        async function getDeviceInfo() {
+            const resultEl = document.getElementById('info-result');
+            resultEl.className = 'result-container pending';
+            resultEl.textContent = '요청 중...';
+
+            try {
+                const result = await sendToNative('getDeviceInfo');
+                resultEl.className = 'result-container success';
+                resultEl.textContent = JSON.stringify(result, null, 2);
+            } catch (error) {
+                resultEl.className = 'result-container error';
+                resultEl.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        async function saveData() {
+            const key = document.getElementById('data-key').value;
+            const value = document.getElementById('data-value').value;
+            const resultEl = document.getElementById('data-result');
+
+            if (!key || !value) {
+                resultEl.className = 'result-container error';
+                resultEl.textContent = 'Key와 Value를 모두 입력하세요';
+                return;
+            }
+
+            resultEl.className = 'result-container pending';
+            resultEl.textContent = '저장 중...';
+
+            try {
+                const result = await sendToNative('saveData', { key, value });
+                resultEl.className = 'result-container success';
+                resultEl.textContent = JSON.stringify(result, null, 2);
+            } catch (error) {
+                resultEl.className = 'result-container error';
+                resultEl.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        async function getData() {
+            const key = document.getElementById('data-key').value;
+            const resultEl = document.getElementById('data-result');
+
+            if (!key) {
+                resultEl.className = 'result-container error';
+                resultEl.textContent = 'Key를 입력하세요';
+                return;
+            }
+
+            resultEl.className = 'result-container pending';
+            resultEl.textContent = '조회 중...';
+
+            try {
+                const result = await sendToNative('getData', { key });
+                resultEl.className = 'result-container success';
+                resultEl.textContent = JSON.stringify(result, null, 2);
+            } catch (error) {
+                resultEl.className = 'result-container error';
+                resultEl.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        // ========== 로그 함수 ==========
+
+        function log(type, message) {
+            const container = document.getElementById('log-container');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            const time = new Date().toLocaleTimeString();
+            entry.textContent = `[${time}] ${message}`;
+            container.insertBefore(entry, container.firstChild);
+
+            // 최대 50개 유지
+            while (container.children.length > 50) {
+                container.removeChild(container.lastChild);
+            }
+        }
+
+        function clearLog() {
+            document.getElementById('log-container').innerHTML = '';
+        }
+
+        // ========== 초기화 ==========
+
+        function checkBridgeStatus() {
+            const badge = document.getElementById('status-badge');
+            if (typeof NativeBridge !== 'undefined') {
+                badge.textContent = '✅ 연결됨';
+                badge.className = 'status-badge supported';
+                log('success', 'NativeBridge 연결됨');
+            } else {
+                badge.textContent = '❌ 연결 안됨';
+                badge.className = 'status-badge unsupported';
+                log('error', 'NativeBridge 연결 안됨');
+            }
+        }
+
+        // 페이지 로드 시 상태 확인
+        window.onload = function() {
+            // Bridge는 비동기로 주입되므로 약간 대기
+            setTimeout(checkBridgeStatus, 100);
+        };
+    </script>
+</body>
+</html>
