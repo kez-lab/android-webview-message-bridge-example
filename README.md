@@ -2,6 +2,10 @@
 
 Android 개발자를 위한 `WebViewCompat.WebMessageListener` 기반 웹-네이티브 통신 가이드입니다.
 
+## Demo Video
+
+- [Screen recording (MP4)](docs/media/bridge-demo-20260216.mp4)
+
 이 프로젝트의 핵심 목적:
 - `addJavascriptInterface` 대신 더 안전한 메시지 기반 통신 사용
 - WebView 안의 웹 페이지와 Android 간 양방향 통신 구현
