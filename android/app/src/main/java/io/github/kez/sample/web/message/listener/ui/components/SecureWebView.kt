@@ -26,25 +26,8 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 import io.github.kez.sample.web.message.listener.bridge.SecureWebMessageListener
+import io.github.kez.sample.web.message.listener.bridge.WebBridgeConfig
 
-/**
- * WebMessageListener가 통합된 Compose WebView 컴포넌트
- *
- * 이 컴포넌트는 Jetpack Compose에서 WebView를 사용하면서
- * [SecureWebMessageListener]를 통해 JavaScript와 안전하게 통신합니다.
- *
- * ## 특징
- * - Origin 기반 보안 검증
- * - 비동기 메시지 처리
- * - 로딩 상태 및 에러 표시
- * - 생명주기 자동 관리
- *
- * @param url 로드할 URL
- * @param modifier Compose modifier
- * @param allowedOrigins 허용된 Origin 목록
- * @param onAction 액션 핸들러 콜백
- * @param onWebViewCreated WebView 생성 시 콜백 (선택적)
- */
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
 fun SecureWebView(
@@ -56,25 +39,21 @@ fun SecureWebView(
 ) {
     val coroutineScope = rememberCoroutineScope()
 
-    // 상태 관리
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var webViewInstance by remember { mutableStateOf<WebView?>(null) }
 
-    // WebView 생명주기 관리
     DisposableEffect(Unit) {
         onDispose {
             webViewInstance?.let { webView ->
                 Log.d("SecureWebView", "Disposing WebView")
 
-                // WebMessageListener 제거
                 if (WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)) {
                     runCatching {
-                        WebViewCompat.removeWebMessageListener(webView, BRIDGE_NAME)
+                        WebViewCompat.removeWebMessageListener(webView, WebBridgeConfig.BRIDGE_NAME)
                     }
                 }
 
-                // WebView 정리
                 webView.stopLoading()
                 webView.destroy()
             }
@@ -82,7 +61,6 @@ fun SecureWebView(
     }
 
     Box(modifier = modifier.fillMaxSize()) {
-        // WebView
         AndroidView(
             modifier = Modifier.fillMaxSize(),
             factory = { context ->
@@ -92,16 +70,13 @@ fun SecureWebView(
                         ViewGroup.LayoutParams.MATCH_PARENT
                     )
 
-                    // WebView 설정
                     settings.apply {
                         javaScriptEnabled = true
                         domStorageEnabled = true
-                        // 보안 설정
                         allowFileAccess = false
                         allowContentAccess = false
                     }
 
-                    // WebViewClient 설정
                     webViewClient = object : WebViewClient() {
                         override fun onPageStarted(
                             view: WebView?,
@@ -131,8 +106,7 @@ fun SecureWebView(
                         }
                     }
 
-                    // WebMessageListener 설정
-                    setupWebMessageListener(
+                    registerWebMessageListener(
                         webView = this,
                         allowedOrigins = allowedOrigins,
                         coroutineScope = coroutineScope,
@@ -142,26 +116,22 @@ fun SecureWebView(
                     webViewInstance = this
                     onWebViewCreated?.invoke(this)
 
-                    // URL 로드
                     loadUrl(url)
                 }
             },
             update = { webView ->
-                // URL 변경 시 리로드
                 if (webView.url != url && url.isNotBlank()) {
                     webView.loadUrl(url)
                 }
             }
         )
 
-        // 로딩 인디케이터
         if (isLoading) {
             CircularProgressIndicator(
                 modifier = Modifier.align(Alignment.Center)
             )
         }
 
-        // 에러 메시지
         errorMessage?.let { error ->
             Text(
                 text = error,
@@ -172,22 +142,12 @@ fun SecureWebView(
     }
 }
 
-private const val BRIDGE_NAME = "NativeBridge"
-
-/**
- * WebMessageListener 설정 헬퍼 함수
- *
- * 참고: file:///android_asset/ URL에서는 origin이 null로 전달됨.
- * WebViewCompat.addWebMessageListener에는 "*"를 전달하고,
- * SecureWebMessageListener 내부에서 실제 origin 검증을 수행함.
- */
-private fun setupWebMessageListener(
+private fun registerWebMessageListener(
     webView: WebView,
     allowedOrigins: Set<String>,
     coroutineScope: kotlinx.coroutines.CoroutineScope,
     onAction: suspend (action: String, payload: Map<String, String>) -> Result<String>
 ) {
-    // Feature 지원 확인
     if (!WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)) {
         Log.w("SecureWebView", "WEB_MESSAGE_LISTENER feature is not supported on this device")
         return
@@ -201,9 +161,6 @@ private fun setupWebMessageListener(
         onAction = onAction
     )
 
-    // WebViewCompat에 전달할 origin 규칙 생성
-    // "null" origin(로컬 파일)을 허용하려면 "*"를 사용해야 함
-    // 실제 보안 검증은 SecureWebMessageListener 내부에서 수행
     val webViewOrigins = if (allowedOrigins.contains("null") || allowedOrigins.contains("*")) {
         setOf("*")
     } else {
@@ -213,7 +170,7 @@ private fun setupWebMessageListener(
     runCatching {
         WebViewCompat.addWebMessageListener(
             webView,
-            BRIDGE_NAME,
+            WebBridgeConfig.BRIDGE_NAME,
             webViewOrigins,
             listener
         )

@@ -5,50 +5,30 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-/**
- * JavaScript에서 호출 가능한 액션들을 처리하는 핸들러
- *
- * 이 클래스는 JavaScript에서 Native로 전송되는 다양한 액션 요청을
- * 처리하고 적절한 응답을 반환합니다.
- *
- * ## 지원 액션
- * - `getUserInfo`: 사용자 정보 조회
- * - `getDeviceInfo`: 디바이스 정보 조회
- * - `saveData`: 데이터 저장
- * - `echo`: 에코 테스트
- */
 class WebBridgeHandler {
 
     private val json = Json { encodeDefaults = true }
 
-    // 임시 저장소 (실제 앱에서는 Repository 사용)
     private val dataStore = mutableMapOf<String, String>()
+    private val actionHandlers: Map<String, (Map<String, String>) -> String> = mapOf(
+        "getUserInfo" to { getUserInfo() },
+        "getDeviceInfo" to { getDeviceInfo() },
+        "saveData" to { payload -> saveData(payload) },
+        "getData" to { payload -> getData(payload) },
+        "echo" to { payload -> echo(payload) },
+        "ping" to { ping() }
+    )
 
-    /**
-     * 액션 요청 처리
-     *
-     * @param action 실행할 액션 이름
-     * @param payload 액션에 필요한 추가 데이터
-     * @return 처리 결과 (성공 시 JSON 문자열, 실패 시 Exception)
-     */
     fun handleAction(
         action: String,
         payload: Map<String, String>
     ): Result<String> {
         return runCatching {
-            when (action) {
-                "getUserInfo" -> getUserInfo()
-                "getDeviceInfo" -> getDeviceInfo()
-                "saveData" -> saveData(payload)
-                "getData" -> getData(payload)
-                "echo" -> echo(payload)
-                "ping" -> ping()
-                else -> throw IllegalArgumentException("Unknown action: $action")
-            }
+            val handler = actionHandlers[action]
+                ?: throw IllegalArgumentException("Unknown action: $action")
+            handler(payload)
         }
     }
-
-    // ========== 액션 구현 ==========
 
     @Serializable
     private data class UserInfo(
