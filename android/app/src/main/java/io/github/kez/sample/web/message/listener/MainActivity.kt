@@ -70,11 +70,11 @@ fun WebMessageListenerDemoApp() {
         }
     ) { innerPadding ->
         SecureWebView(
-            url = WebBridgeConfig.LOCAL_DEMO_URL,
+            url = WebBridgeConfig.PROD_WEB_URL,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),
-            allowedOrigins = WebBridgeConfig.LOCAL_ALLOWED_ORIGINS,
+            allowedOrigins = WebBridgeConfig.PROD_ALLOWED_ORIGINS,
             onAction = { action, payload ->
                 bridgeHandler.handleAction(action, payload)
             }
