@@ -4,7 +4,7 @@ Android 개발자를 위한 `WebViewCompat.WebMessageListener` 기반 웹-네이
 
 ## Demo Video
 
-[![Demo Preview](docs/media/bridge-demo-preview.gif)](docs/media/bridge-demo-20260216.mp4)
+[<img src="docs/media/bridge-demo-preview.gif" alt="Demo Preview" width="280" />](docs/media/bridge-demo-20260216.mp4)
 - [Full video (MP4)](docs/media/bridge-demo-20260216.mp4)
 
 이 프로젝트의 핵심 목적:
