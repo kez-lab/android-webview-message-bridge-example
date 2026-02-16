@@ -10,23 +10,21 @@ class WebBridgeHandler {
     private val json = Json { encodeDefaults = true }
 
     private val dataStore = mutableMapOf<String, String>()
-    private val actionHandlers: Map<String, (Map<String, String>) -> String> = mapOf(
-        "getUserInfo" to { getUserInfo() },
-        "getDeviceInfo" to { getDeviceInfo() },
-        "saveData" to { payload -> saveData(payload) },
-        "getData" to { payload -> getData(payload) },
-        "echo" to { payload -> echo(payload) },
-        "ping" to { ping() }
-    )
 
     fun handleAction(
         action: String,
         payload: Map<String, String>
     ): Result<String> {
         return runCatching {
-            val handler = actionHandlers[action]
-                ?: throw IllegalArgumentException("Unknown action: $action")
-            handler(payload)
+            when (action) {
+                "getUserInfo" -> getUserInfo()
+                "getDeviceInfo" -> getDeviceInfo()
+                "saveData" -> saveData(payload)
+                "getData" -> getData(payload)
+                "echo" -> echo(payload)
+                "ping" -> ping()
+                else -> throw IllegalArgumentException("Unknown action: $action")
+            }
         }
     }
 
