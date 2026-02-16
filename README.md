@@ -84,6 +84,13 @@ SecureWebView(
 )
 ```
 
+현재 프로젝트는 아래 운영값으로 이미 연결되어 있습니다.
+
+- `PROD_WEB_URL`: `https://samplewebmessagelistener-web.pages.dev`
+- `PROD_ALLOWED_ORIGINS`: `https://samplewebmessagelistener-web.pages.dev`
+
+위 값은 `android/app/src/main/java/io/github/kez/sample/web/message/listener/bridge/WebBridgeConfig.kt`에서 관리합니다.
+
 ## 6. 보안 체크리스트
 
 - 운영 환경에서 `allowedOrigins`를 최소 범위로 제한
