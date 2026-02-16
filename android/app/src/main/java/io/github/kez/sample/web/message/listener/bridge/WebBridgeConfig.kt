@@ -6,8 +6,8 @@ object WebBridgeConfig {
     const val LOCAL_DEMO_URL = "file:///android_asset/demo.html"
     val LOCAL_ALLOWED_ORIGINS: Set<String> = setOf("null")
 
-    const val PROD_WEB_URL = "https://samplewebmessagelistener-web.pages.dev"
+    const val PROD_WEB_URL = "https://android-webview-message-bridge-example.pages.dev"
     val PROD_ALLOWED_ORIGINS: Set<String> = setOf(
-        "https://samplewebmessagelistener-web.pages.dev"
+        "https://android-webview-message-bridge-example.pages.dev"
     )
 }
