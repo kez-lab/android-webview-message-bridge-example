@@ -1,14 +1,14 @@
-# Web 프로젝트 (WebMessageListener 데모)
+# Web 프로젝트 (Bridge 데모 UI)
 
-Android `WebViewCompat.WebMessageListener`와 연동되는 실제 배포용 웹 앱입니다.
+Android `WebViewCompat.WebMessageListener` 브리지와 통신하는 React 앱입니다.
 
 ## 스택
 
 - React 18
-- TypeScript
+- TypeScript 5
 - Vite 5
 
-## 실행 방법
+## 실행
 
 ```bash
 cd web
@@ -16,7 +16,7 @@ npm install
 npm run dev
 ```
 
-기본 개발 주소: `http://localhost:5173`
+- 개발 주소: `http://localhost:5173`
 
 ## 빌드
 
@@ -25,11 +25,11 @@ npm run build
 npm run preview
 ```
 
-배포 산출물: `web/dist`
+- 산출물: `web/dist`
 
 ## 브리지 프로토콜
 
-웹 -> Android 요청:
+요청:
 
 ```json
 {
@@ -39,18 +39,21 @@ npm run preview
 }
 ```
 
-Android -> 웹 응답:
+응답:
 
 ```json
 {
   "id": "request-id",
   "success": true,
-  "data": "{\"pong\":true}",
+  "data": "{\"pong\":true,\"timestamp\":1700000000000}",
   "error": null
 }
 ```
 
-`action`은 Android `WebBridgeHandler` 기준으로 다음을 지원합니다.
+- `payload`는 `Record<string, string>`
+- `data`는 JSON 문자열이며 웹에서 파싱해서 사용
+
+## 지원 액션
 
 - `ping`
 - `echo`
@@ -58,33 +61,21 @@ Android -> 웹 응답:
 - `getDeviceInfo`
 - `saveData`
 - `getData`
+- `checkPermission`
+- `requestPermission`
+- `shareText`
+- `copyToClipboard`
+- `getClipboardText`
+- `openSystemSettings`
 
-## 로컬 브라우저 테스트
+타입 정의 위치:
+- `web/src/types/bridge.ts`
 
-브라우저에서 `NativeBridge` 객체가 없으면 개발 모드에서 자동으로 mock bridge를 주입합니다.
+## Mock NativeBridge
 
-운영 환경에서 강제로 mock 사용:
+다음 조건에서 mock bridge가 자동 주입됩니다.
 
-- URL에 `?mockBridge=1` 추가
+- 개발 모드(`import.meta.env.DEV`)
+- 또는 URL 쿼리 `?mockBridge=1`
 
-예: `https://your-web-url.example.com/?mockBridge=1`
-
-## Android 연동 변경점
-
-로컬 파일 대신 원격 웹을 로드하려면 Android 코드에서 URL과 허용 Origin을 변경하세요.
-
-`android/app/src/main/java/io/github/kez/sample/web/message/listener/MainActivity.kt`
-
-```kotlin
-SecureWebView(
-    url = "https://your-domain.com",
-    allowedOrigins = setOf(
-        "https://your-domain.com"
-    ),
-    onAction = { action, payload ->
-        bridgeHandler.handleAction(action, payload)
-    }
-)
-```
-
-배포 도메인과 `allowedOrigins`는 반드시 일치시켜야 합니다.
+이미 `window.NativeBridge`가 존재하면 mock은 주입하지 않습니다.

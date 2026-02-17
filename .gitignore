@@ -30,3 +30,7 @@ yarn-error.log*
 web/*.tsbuildinfo
 web/vite.config.js
 web/vite.config.d.ts
+
+# PR draft bodies
+docs/pr/drafts/*.md
+docs/pr/body.md

@@ -14,9 +14,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.webkit.WebViewFeature
+import io.github.kez.sample.web.message.listener.bridge.ActivityPermissionRequester
 import io.github.kez.sample.web.message.listener.bridge.WebBridgeConfig
 import io.github.kez.sample.web.message.listener.bridge.WebBridgeHandler
 import io.github.kez.sample.web.message.listener.ui.components.SecureWebView
@@ -29,12 +29,19 @@ import io.github.kez.sample.web.message.listener.ui.theme.Samplewebmessagelisten
  * JavaScript와 Native 간의 안전한 양방향 통신을 시연합니다.
  */
 class MainActivity : ComponentActivity() {
+    private lateinit var bridgeHandler: WebBridgeHandler
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        bridgeHandler = WebBridgeHandler(
+            activity = this,
+            permissionRequester = ActivityPermissionRequester(this)
+        )
+
         enableEdgeToEdge()
         setContent {
             SamplewebmessagelistenerTheme {
-                WebMessageListenerDemoApp()
+                WebMessageListenerDemoApp(bridgeHandler)
             }
         }
     }
@@ -42,9 +49,7 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun WebMessageListenerDemoApp() {
-    val bridgeHandler = remember { WebBridgeHandler() }
-
+fun WebMessageListenerDemoApp(bridgeHandler: WebBridgeHandler) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
