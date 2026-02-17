@@ -17,8 +17,10 @@
 기본값은 원격 웹을 로드합니다.
 
 - Bridge name: `NativeBridge`
-- `PROD_WEB_URL`: `https://android-webview-message-bridge-example.pages.dev`
-- `PROD_ALLOWED_ORIGINS`: `https://android-webview-message-bridge-example.pages.dev`
+- `PROD_WEB_URL`: `https://android-webview-message-bridge-example.kez-lab.org`
+- `PROD_ALLOWED_ORIGINS`:
+  - `https://android-webview-message-bridge-example.kez-lab.org`
+  - `https://*.android-webview-message-bridge-example.pages.dev` (preview/임시 배포 허용)
 
 설정 위치:
 - `android/app/src/main/java/io/github/kez/sample/web/message/listener/bridge/WebBridgeConfig.kt`
