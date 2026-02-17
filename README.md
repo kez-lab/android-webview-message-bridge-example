@@ -75,6 +75,16 @@ Android에서 수신/처리 후 응답(JSON 문자열) 반환:
 - `getClipboardText`
 - `openSystemSettings`
 
+`openSystemSettings`의 `payload.target` 예시:
+- `app`
+- `notification`
+- `notificationChannel` (`payload.channelId` 함께 전달)
+- `wifi`
+- `bluetooth`
+- `location`
+- `batteryOptimization`
+- `overlay`
+
 ## 5. 원격 웹 배포 연동 시 변경 포인트
 
 현재 예제는 로컬 자산(`file:///android_asset/demo.html`)을 로드합니다.

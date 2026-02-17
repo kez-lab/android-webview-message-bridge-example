@@ -87,7 +87,8 @@ function handleAction(action: BridgeAction, payload: Record<string, string>): un
     case 'openSystemSettings':
       return {
         target: payload.target ?? 'app',
-        opened: true
+        opened: true,
+        details: payload.channelId ?? null
       };
     default:
       throw new Error(`Unknown action: ${action}`);

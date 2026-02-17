@@ -289,11 +289,13 @@ class WebBridgeHandler(
     @Serializable
     private data class OpenSettingsResult(
         val target: String,
-        val opened: Boolean
+        val opened: Boolean,
+        val details: String? = null
     )
 
     private fun openSystemSettings(payload: Map<String, String>): String {
         val target = payload["target"] ?: "app"
+        val channelId = payload["channelId"]
         val intent = when (target) {
             "app" -> Intent(
                 Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
@@ -304,6 +306,9 @@ class WebBridgeHandler(
             "bluetooth" -> Intent(Settings.ACTION_BLUETOOTH_SETTINGS)
             "location" -> Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
             "notification" -> createNotificationSettingsIntent()
+            "notificationChannel" -> createNotificationChannelSettingsIntent(channelId)
+            "overlay" -> createOverlaySettingsIntent()
+            "batteryOptimization" -> createBatteryOptimizationSettingsIntent()
             else -> throw IllegalArgumentException("Unsupported settings target: $target")
         }
 
@@ -316,7 +321,8 @@ class WebBridgeHandler(
         return json.encodeToString(
             OpenSettingsResult(
                 target = target,
-                opened = true
+                opened = true,
+                details = channelId
             )
         )
     }
@@ -326,6 +332,41 @@ class WebBridgeHandler(
             Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
                 putExtra(Settings.EXTRA_APP_PACKAGE, activity.packageName)
             }
+        } else {
+            Intent(
+                Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                Uri.fromParts("package", activity.packageName, null)
+            )
+        }
+    }
+
+    private fun createNotificationChannelSettingsIntent(channelId: String?): Intent {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !channelId.isNullOrBlank()) {
+            return Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS).apply {
+                putExtra(Settings.EXTRA_APP_PACKAGE, activity.packageName)
+                putExtra(Settings.EXTRA_CHANNEL_ID, channelId)
+            }
+        }
+        return createNotificationSettingsIntent()
+    }
+
+    private fun createOverlaySettingsIntent(): Intent {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            Intent(
+                Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                Uri.parse("package:${activity.packageName}")
+            )
+        } else {
+            Intent(
+                Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                Uri.fromParts("package", activity.packageName, null)
+            )
+        }
+    }
+
+    private fun createBatteryOptimizationSettingsIntent(): Intent {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
         } else {
             Intent(
                 Settings.ACTION_APPLICATION_DETAILS_SETTINGS,

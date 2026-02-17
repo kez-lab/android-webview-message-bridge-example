@@ -34,6 +34,7 @@ function App() {
   const [shareTextInput, setShareTextInput] = useState('브릿지에서 네이티브 공유 실행');
   const [clipboardInput, setClipboardInput] = useState('클립보드에 복사할 텍스트');
   const [settingsTarget, setSettingsTarget] = useState('app');
+  const [notificationChannelId, setNotificationChannelId] = useState('default');
 
   const bridge = useMemo(
     () =>
@@ -120,7 +121,11 @@ function App() {
   };
 
   const onOpenSettings = async () => {
-    await runAction('native', 'openSystemSettings', { target: settingsTarget });
+    const payload: Record<string, string> = { target: settingsTarget };
+    if (settingsTarget === 'notificationChannel') {
+      payload.channelId = notificationChannelId;
+    }
+    await runAction('native', 'openSystemSettings', payload);
   };
 
   return (
@@ -238,8 +243,20 @@ function App() {
                 <option value="wifi">Wi-Fi 설정</option>
                 <option value="bluetooth">Bluetooth 설정</option>
                 <option value="location">위치 설정</option>
+                <option value="batteryOptimization">배터리 최적화 설정</option>
+                <option value="notificationChannel">알림 채널 설정</option>
+                <option value="overlay">앱별 오버레이 설정</option>
               </select>
             </label>
+            {settingsTarget === 'notificationChannel' ? (
+              <label>
+                Notification Channel ID
+                <input
+                  value={notificationChannelId}
+                  onChange={(event) => setNotificationChannelId(event.target.value)}
+                />
+              </label>
+            ) : null}
             <button type="button" className="secondary" onClick={onOpenSettings}>
               설정 화면 열기
             </button>
