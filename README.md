@@ -1,45 +1,39 @@
-# Android WebMessageListener Guide
+# Android WebMessageListener Sample
 
-Android 개발자를 위한 `WebViewCompat.WebMessageListener` 기반 웹-네이티브 통신 가이드입니다.
+`WebViewCompat.WebMessageListener` 기반의 Android-Web 양방향 브리지 샘플입니다.
 
-## Demo Video
+## Demo
 
 [<img src="docs/media/bridge-demo-preview.gif" alt="Demo Preview" width="280" />](docs/media/bridge-demo-20260216.mp4)
 - [Full video (MP4)](docs/media/bridge-demo-20260216.mp4)
 
-이 프로젝트의 핵심 목적:
-- `addJavascriptInterface` 대신 더 안전한 메시지 기반 통신 사용
-- WebView 안의 웹 페이지와 Android 간 양방향 통신 구현
-- Origin 검증을 통한 보안 강화
+## 프로젝트 구성
 
-## 1. 프로젝트 구조
+- `android/`: Android 앱 (Compose + WebView + Native Bridge)
+- `web/`: React/Vite 웹 앱 (Android 브리지 호출 UI)
 
-- `android/`: Android 앱 본체 (WebView + Bridge)
-- `web/`: 연동 대상 웹 프로젝트 (Android에서 로드)
+## 현재 Android 런타임 설정
 
-이 문서는 Android 관점에서 필요한 내용만 다룹니다.
+기본값은 원격 웹을 로드합니다.
 
-## 2. 현재 Android 핵심 파일
+- Bridge name: `NativeBridge`
+- `PROD_WEB_URL`: `https://android-webview-message-bridge-example.pages.dev`
+- `PROD_ALLOWED_ORIGINS`: `https://android-webview-message-bridge-example.pages.dev`
 
-- 메인 화면/웹 로드: `android/app/src/main/java/io/github/kez/sample/web/message/listener/MainActivity.kt`
-- WebView 컴포넌트: `android/app/src/main/java/io/github/kez/sample/web/message/listener/ui/components/SecureWebView.kt`
-- 메시지 리스너: `android/app/src/main/java/io/github/kez/sample/web/message/listener/bridge/SecureWebMessageListener.kt`
-- 메시지 모델: `android/app/src/main/java/io/github/kez/sample/web/message/listener/bridge/WebBridgeMessage.kt`
-- 액션 처리기: `android/app/src/main/java/io/github/kez/sample/web/message/listener/bridge/WebBridgeHandler.kt`
+설정 위치:
+- `android/app/src/main/java/io/github/kez/sample/web/message/listener/bridge/WebBridgeConfig.kt`
 
-## 3. 브리지 동작 개요
+## 핵심 Android 파일
 
-브리지 이름: `NativeBridge`
+- `android/app/src/main/java/io/github/kez/sample/web/message/listener/MainActivity.kt`
+- `android/app/src/main/java/io/github/kez/sample/web/message/listener/ui/components/SecureWebView.kt`
+- `android/app/src/main/java/io/github/kez/sample/web/message/listener/bridge/SecureWebMessageListener.kt`
+- `android/app/src/main/java/io/github/kez/sample/web/message/listener/bridge/WebBridgeMessage.kt`
+- `android/app/src/main/java/io/github/kez/sample/web/message/listener/bridge/WebBridgeHandler.kt`
 
-웹에서 요청(JSON 문자열) 전송:
-- `NativeBridge.postMessage(JSON.stringify(request))`
+## 메시지 프로토콜
 
-Android에서 수신/처리 후 응답(JSON 문자열) 반환:
-- `replyProxy.postMessage(responseJson)`
-
-## 4. 메시지 규격
-
-### 4.1 Request (웹 -> Android)
+요청(웹 -> Android):
 
 ```json
 {
@@ -49,91 +43,64 @@ Android에서 수신/처리 후 응답(JSON 문자열) 반환:
 }
 ```
 
-### 4.2 Response (Android -> 웹)
+응답(Android -> 웹):
 
 ```json
 {
   "id": "request-id",
   "success": true,
-  "data": "{\"pong\":true}",
+  "data": "{\"pong\":true,\"timestamp\":1700000000000}",
   "error": null
 }
 ```
 
-### 4.3 지원 액션 (`WebBridgeHandler` 기준)
+- `payload`는 `Record<string, string>` 형태로 처리됩니다.
+- `data`는 JSON 문자열로 내려오며, 웹에서 다시 파싱해 사용합니다.
+
+## 지원 액션 (`WebBridgeHandler`)
 
 - `ping`
-- `echo`
+- `echo` (`payload.message`)
 - `getUserInfo`
 - `getDeviceInfo`
-- `saveData`
-- `getData`
-- `checkPermission`
-- `requestPermission`
-- `shareText`
-- `copyToClipboard`
+- `saveData` (`payload.key`, `payload.value`)
+- `getData` (`payload.key`)
+- `checkPermission` (`payload.permission`)
+- `requestPermission` (`payload.permission`)
+- `shareText` (`payload.text`, `payload.subject?`)
+- `copyToClipboard` (`payload.text`, `payload.label?`)
 - `getClipboardText`
-- `openSystemSettings`
+- `openSystemSettings` (`payload.target`, `payload.channelId?`)
 
-`openSystemSettings`의 `payload.target` 예시:
+`openSystemSettings`의 `target` 지원값:
 - `app`
 - `notification`
-- `notificationChannel` (`payload.channelId` 함께 전달)
+- `notificationChannel`
 - `wifi`
 - `bluetooth`
 - `location`
 - `batteryOptimization`
 - `overlay`
 
-## 5. 원격 웹 배포 연동 시 변경 포인트
+## 로컬 자산 페이지로 전환 (선택)
 
-현재 예제는 로컬 자산(`file:///android_asset/demo.html`)을 로드합니다.
+로컬 데모 파일도 포함되어 있습니다.
 
-실서비스용으로 전환할 때:
-1. `MainActivity.kt`에서 `url`을 배포 URL로 변경
-2. `allowedOrigins`를 배포 도메인으로 제한
+- `LOCAL_DEMO_URL`: `file:///android_asset/demo.html`
+- `LOCAL_ALLOWED_ORIGINS`: `null`
 
-예시:
+`MainActivity.kt`에서 `SecureWebView`의 `url`/`allowedOrigins`를 `LOCAL_*` 값으로 바꾸면 로컬 자산으로 테스트할 수 있습니다.
 
-```kotlin
-SecureWebView(
-    url = "https://your-domain.com",
-    allowedOrigins = setOf("https://your-domain.com"),
-    onAction = { action, payload ->
-        bridgeHandler.handleAction(action, payload)
-    }
-)
-```
+## 보안 포인트
 
-현재 프로젝트는 아래 운영값으로 이미 연결되어 있습니다.
+- Origin 화이트리스트 검증
+- `isMainFrame` 검증
+- 메시지 파싱/검증 실패 시 에러 응답 반환
+- `WebSettings`에서 `allowFileAccess=false`, `allowContentAccess=false`
 
-- `PROD_WEB_URL`: `https://samplewebmessagelistener-web.pages.dev`
-- `PROD_ALLOWED_ORIGINS`: `https://samplewebmessagelistener-web.pages.dev`
+## 참고 문서
 
-위 값은 `android/app/src/main/java/io/github/kez/sample/web/message/listener/bridge/WebBridgeConfig.kt`에서 관리합니다.
-
-## 6. 보안 체크리스트
-
-- 운영 환경에서 `allowedOrigins`를 최소 범위로 제한
-- 와일드카드(`*`)는 개발 단계에서만 사용
-- `isMainFrame` 검증 유지 (iframe 기반 공격 완화)
-- 메시지 파싱 실패/알 수 없는 액션에 대해 명확한 에러 응답 유지
-
-## 7. 트러블슈팅
-
-- `NativeBridge not available`
-  - 브리지 등록(`addWebMessageListener`) 성공 여부 확인
-  - 웹 페이지 로드 시점과 브리지 주입 시점 확인
-- 요청 타임아웃
-  - 웹 `action` 문자열과 Android `when (action)` 항목 일치 여부 확인
-- Origin 차단
-  - `allowedOrigins`와 실제 URL의 scheme/host/port 완전 일치 확인
-
-## 8. 공식 문서
-
-- WebViewCompat: https://developer.android.com/reference/androidx/webkit/WebViewCompat
-- WebViewCompat.WebMessageListener: https://developer.android.com/reference/androidx/webkit/WebViewCompat.WebMessageListener
-- JavaScriptReplyProxy: https://developer.android.com/reference/androidx/webkit/JavaScriptReplyProxy
-- WebMessageCompat: https://developer.android.com/reference/androidx/webkit/WebMessageCompat
-- WebView 앱 가이드: https://developer.android.com/develop/ui/views/layout/webapps
-- WebSettings 보안 가이드: https://developer.android.com/reference/android/webkit/WebSettings
+- https://developer.android.com/reference/androidx/webkit/WebViewCompat
+- https://developer.android.com/reference/androidx/webkit/WebViewCompat.WebMessageListener
+- https://developer.android.com/reference/androidx/webkit/JavaScriptReplyProxy
+- https://developer.android.com/reference/androidx/webkit/WebMessageCompat
