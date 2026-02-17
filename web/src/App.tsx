@@ -24,9 +24,16 @@ function App() {
   const [dataResult, setDataResult] = useState<ResultState>(
     defaultResult('데이터를 저장하거나 조회하세요')
   );
+  const [nativeResult, setNativeResult] = useState<ResultState>(
+    defaultResult('권한/공유/클립보드/설정 API를 테스트하세요')
+  );
 
   const [keyInput, setKeyInput] = useState('myKey');
   const [valueInput, setValueInput] = useState('Hello from Web!');
+  const [permissionInput, setPermissionInput] = useState('android.permission.CAMERA');
+  const [shareTextInput, setShareTextInput] = useState('브릿지에서 네이티브 공유 실행');
+  const [clipboardInput, setClipboardInput] = useState('클립보드에 복사할 텍스트');
+  const [settingsTarget, setSettingsTarget] = useState('app');
 
   const bridge = useMemo(
     () =>
@@ -46,14 +53,18 @@ function App() {
   );
 
   const runAction = async (
-    section: 'basic' | 'info' | 'data',
+    section: 'basic' | 'info' | 'data' | 'native',
     action: Parameters<WebBridgeClient['send']>[0],
     payload: Record<string, string> = {}
   ) => {
     setBridgeStatus(bridge.isAvailable() ? 'connected' : 'missing');
 
-    const setResult =
-      section === 'basic' ? setBasicResult : section === 'info' ? setInfoResult : setDataResult;
+    const setResult = (() => {
+      if (section === 'basic') return setBasicResult;
+      if (section === 'info') return setInfoResult;
+      if (section === 'data') return setDataResult;
+      return setNativeResult;
+    })();
 
     setResult({ kind: 'loading', text: '요청 중...' });
 
@@ -84,6 +95,32 @@ function App() {
     }
 
     await runAction('data', 'getData', { key: keyInput });
+  };
+
+  const onPermissionCheck = async () => {
+    await runAction('native', 'checkPermission', { permission: permissionInput });
+  };
+
+  const onPermissionRequest = async () => {
+    await runAction('native', 'requestPermission', { permission: permissionInput });
+  };
+
+  const onShareText = async () => {
+    await runAction('native', 'shareText', {
+      text: shareTextInput,
+      subject: 'Bridge Demo'
+    });
+  };
+
+  const onCopyToClipboard = async () => {
+    await runAction('native', 'copyToClipboard', {
+      text: clipboardInput,
+      label: 'BridgeDemo'
+    });
+  };
+
+  const onOpenSettings = async () => {
+    await runAction('native', 'openSystemSettings', { target: settingsTarget });
   };
 
   return (
@@ -141,6 +178,73 @@ function App() {
             </div>
           </form>
           <ResultBox state={dataResult} />
+        </article>
+
+        <article className="card">
+          <h2>네이티브 API 예시</h2>
+          <form className="form" onSubmit={(event) => event.preventDefault()}>
+            <label>
+              Permission
+              <input
+                value={permissionInput}
+                onChange={(event) => setPermissionInput(event.target.value)}
+              />
+            </label>
+            <div className="button-group">
+              <button type="button" onClick={onPermissionCheck}>
+                권한 체크
+              </button>
+              <button type="button" onClick={onPermissionRequest}>
+                권한 요청
+              </button>
+            </div>
+            <label>
+              Share Text
+              <input
+                value={shareTextInput}
+                onChange={(event) => setShareTextInput(event.target.value)}
+              />
+            </label>
+            <button type="button" onClick={onShareText}>
+              시스템 공유 열기
+            </button>
+            <label>
+              Clipboard Text
+              <input
+                value={clipboardInput}
+                onChange={(event) => setClipboardInput(event.target.value)}
+              />
+            </label>
+            <div className="button-group">
+              <button type="button" onClick={onCopyToClipboard}>
+                클립보드 복사
+              </button>
+              <button
+                type="button"
+                className="secondary"
+                onClick={() => runAction('native', 'getClipboardText')}
+              >
+                클립보드 읽기
+              </button>
+            </div>
+            <label>
+              Settings Target
+              <select
+                value={settingsTarget}
+                onChange={(event) => setSettingsTarget(event.target.value)}
+              >
+                <option value="app">App 상세 설정</option>
+                <option value="notification">알림 설정</option>
+                <option value="wifi">Wi-Fi 설정</option>
+                <option value="bluetooth">Bluetooth 설정</option>
+                <option value="location">위치 설정</option>
+              </select>
+            </label>
+            <button type="button" className="secondary" onClick={onOpenSettings}>
+              설정 화면 열기
+            </button>
+          </form>
+          <ResultBox state={nativeResult} />
         </article>
 
         <article className="card">

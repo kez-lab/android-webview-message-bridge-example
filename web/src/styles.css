@@ -160,12 +160,15 @@ label {
   color: var(--soft-ink);
 }
 
-input {
+input,
+select {
   border: 1px solid var(--line);
   border-radius: 10px;
   padding: 10px;
   font-size: 0.94rem;
   font-family: inherit;
+  background: #fff;
+  color: var(--ink);
 }
 
 .log-list {

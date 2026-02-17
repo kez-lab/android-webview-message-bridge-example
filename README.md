@@ -68,6 +68,12 @@ Android에서 수신/처리 후 응답(JSON 문자열) 반환:
 - `getDeviceInfo`
 - `saveData`
 - `getData`
+- `checkPermission`
+- `requestPermission`
+- `shareText`
+- `copyToClipboard`
+- `getClipboardText`
+- `openSystemSettings`
 
 ## 5. 원격 웹 배포 연동 시 변경 포인트
 

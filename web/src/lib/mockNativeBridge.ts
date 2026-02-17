@@ -65,6 +65,30 @@ function handleAction(action: BridgeAction, payload: Record<string, string>): un
       const value = store.get(key);
       return { found: Boolean(value), key, value: value ?? null };
     }
+    case 'checkPermission':
+    case 'requestPermission':
+      return {
+        permission: payload.permission ?? 'android.permission.CAMERA',
+        granted: true,
+        shouldShowRationale: false
+      };
+    case 'shareText':
+      return { opened: true, timestamp: Date.now() };
+    case 'copyToClipboard':
+      return {
+        text: payload.text ?? '',
+        hasText: Boolean(payload.text)
+      };
+    case 'getClipboardText':
+      return {
+        text: 'mock clipboard',
+        hasText: true
+      };
+    case 'openSystemSettings':
+      return {
+        target: payload.target ?? 'app',
+        opened: true
+      };
     default:
       throw new Error(`Unknown action: ${action}`);
   }

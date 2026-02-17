@@ -4,7 +4,13 @@ export type BridgeAction =
   | 'getUserInfo'
   | 'getDeviceInfo'
   | 'saveData'
-  | 'getData';
+  | 'getData'
+  | 'checkPermission'
+  | 'requestPermission'
+  | 'shareText'
+  | 'copyToClipboard'
+  | 'getClipboardText'
+  | 'openSystemSettings';
 
 export interface BridgeRequest {
   id: string;
